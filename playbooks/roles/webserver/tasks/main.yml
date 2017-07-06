@@ -1,0 +1,44 @@
+#playbook for webserver
+  - name: Connect to remote host and execute yum updates
+    yum: name=* state={{ state_l }}
+  - name: Install {{ apache }}
+    yum: name={{ apache }} state={{ state_l }}
+  
+
+  - name: Copy html
+    copy: src={{ html_src }} dest={{ html_dest }} owner={{ pri_owner }} group={{ pri_owner }} mode=0655 backup={{ backup }}
+  
+  - name: install {{ ssl }}
+    yum: name={{ ssl }} state={{ state_l }}
+
+  - name: create a directory for ssl
+    file: name={{ ssl_dir }} state={{ state_d }} owner={{ pri_owner }} group={{ pri_owner }}
+
+  - name: Generate SSL key and Cert Files
+    command: sudo openssl req -x509 -nodes -days "{{ days }}" -newkey "{{ newkey }}" -subj "{{ ssl_certs_fields }}" -keyout "{{ ssl_cert_key }}" -out "{{ ssl_cert_file }}"
+
+  - name: Create DH Pem for perfecr Forword Secrecy
+    command: sudo openssl dhparam -out "{{ dh_out }}" "{{ dh_sz }}"
+
+  - name: Apache update VHost file
+    template: 
+      src: "{{ ssl_file }}"
+      dest: "{{ ssl_path }}/{{ ssl_file }}"
+      mode: 0644
+      owner: "{{ pri_owner }}"
+      group: "{{ pri_owner }}"
+    register: "{{ ssl_reg }}"
+ 
+  - name: Apache update VHost redirect file
+    template: 
+      src: "{{ non_ssl }}"
+      dest: "{{ ssl_path }}/{{ non_ssl }}"
+      mode: 0644
+      owner: "{{ pri_owner }}"
+      group: "{{ pri_owner }}"
+    register: "{{ non_ssl_reg }}"
+ 
+
+  - name: Restart HTTPD
+    service: name={{ apache }} state={{ state_r }}
+    

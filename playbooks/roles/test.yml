@@ -1,0 +1,6 @@
+--- #test
+- hosts: webserver
+  remote_user: ec2-user
+  connection: ssh
+  become: yes
+  gather_facts:

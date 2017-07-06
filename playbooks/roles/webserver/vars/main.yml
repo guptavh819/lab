@@ -1,0 +1,72 @@
+---
+ssl_certs_country: "US"
+ssl_certs_locality: "Charlotte"
+ssl_certs_organization: "Your company"
+ssl_certs_state: "NC"
+ssl_certs_common_name: "{{inventory_hostname}}"
+ssl_certs_days: "365"
+ssl_certs_fields: "/C={{ssl_certs_country}}/ST={{ssl_certs_state}}/L={{ssl_certs_locality}}/O={{ssl_certs_organization}}/CN={{ssl_certs_common_name}}"
+
+
+state_l: "latest"
+apache: "httpd"
+html_src: "/home/ansible/playbook/roles/webserver/files/index.html"
+html_dest: "/var/www/html/index.html"
+pri_owner: "root"
+ssl: "mod_ssl"
+ssl_dir: "/etc/ssl/private"
+state_d: "directory"
+newkey: "rsa:2048"
+days: "365"
+dh_out: "/etc/ssl/certs/dhparam.pem"
+ssl_reg: "ssl_updated"
+non_ssl_reg: "non_ssl_updated"
+state_r: "restarted"
+dh_sz: "2048"
+backup: "yes"
+
+include: ../files/awscrd.yml
+
+html_path: /var/www/html
+ssl_cert_file: /etc/ssl/certs/apache.crt
+ssl_cert_key: /etc/ssl/private/apache.key
+
+ssl_file: ssl.conf
+non_ssl: non-ssl.conf
+ssl_path: /etc/httpd/conf.d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ssl_certs_path: "/etc/ssl"
+ssl_certs_path_owner: "www-data"
+ssl_certs_path_group: "www-data"
+ssl_certs_privkey_path: "{{ssl_certs_path}}/{{ssl_certs_common_name}}.key"
+ssl_certs_cert_path: "{{ssl_certs_path}}/{{ssl_certs_common_name}}.pem"
+ssl_certs_csr_path: "{{ssl_certs_path}}/{{ssl_certs_common_name}}.csr"
+ssl_certs_dhparam_path: "{{ssl_certs_path}}/dhparam.pem"
+ssl_certs_mode: "0700"
+ssl_certs_force_replace: yes
+
+ssl_certs_local_privkey_path: "{{inventory_dir|default(playbook_dir)}}/files/ssl/{{ssl_certs_common_name}}.key"
+ssl_certs_local_cert_path: "{{inventory_dir|default(playbook_dir)}}/files/ssl/{{ssl_certs_common_name}}.pem"
+ssl_certs_local_privkey_data: ""
+ssl_certs_local_cert_data: ""
+
+ssl_certs_generate_self_signed: true
+ssl_certs_key_size: "2048"

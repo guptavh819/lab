@@ -1,0 +1,18 @@
+---
+- hosts: host
+  user: ansible
+  connection: ssh
+  gather_facts: yes
+  roles: 
+  - ec2
+  post_tasks:
+  - name: refresh host file
+    meta: refresh_inventory
+
+- hosts: webserver
+  remote_user: ec2-user
+  connection: ssh
+  become: yes
+  gather_facts: yes
+  roles: 
+  - webserver

@@ -1,0 +1,69 @@
+#Playbook for LAB
+#1) Creates Security Groups
+#2) Create EC2 Instances
+  - name: setting up "{{ sec_group }}"
+    ec2_group:
+       name: "{{ sec_group }}"
+       description: Rules allowing traffic on port "{{ port1 }}" and "{{ port2 }}" and "{{ port3 }}"
+       vpc_id: "{{ vpc }}"
+       region: "{{ region }}"
+       rules:
+       - proto: "{{ proto }}"
+         from_port: "{{ port1 }}"
+         to_port: "{{ port1 }}"
+         cidr_ip: "{{ cidr }}"
+       - proto: "{{ proto }}"
+         from_port: "{{ port2 }}"
+         to_port: "{{ port2 }}"
+         cidr_ip: "{{ cidr }}"
+       - proto: "{{ proto }}"
+         from_port: "{{ port3 }}"
+         to_port: "{{ port3 }}"
+         cidr_ip: "{{ cidr }}" 
+       rules_egress:
+       - proto: "{{ all }}"
+         cidr_ip: "{{ cidr }}"
+
+  - name: Create a New Key Pair -- {{ key_name }}
+    ec2_key:
+       name: "{{ key_name }}"
+       region: "{{ region }}"
+       key_material: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC9K+/lPkclu69y/moJIcDsMUYY6vPbFeaIUHY4YkjPJAOxvuMQoZxQnblBFtv8sYPEjGEojKRJby8W26jA3eN1dqja3do1UVNWMhh7d9txUJiVC7zCWdoyqxGcam1yy6EbBxrUe9kVZSfcqS/Zq/Z880hwDAqV091OdimI6pedMe63sZNOcqDmVw2FTOxDRhQtPsMrT7g9Ufc62csSi/bUwZvOvAasreaHbZ/ctzh8HkichSD56j64AO4jE7oSt22yvsjuytV/9vS2zjSR/DX+j2x+5e8Z/tW2qLIQPyZe6BGMPuwHrvO4a5Mpz68nnDIbEw6roNVMTocsMG6LFcCf ansible@vharishgupta-gmail-com5.mylabserver.com'
+       state: "{{ state_p }}"
+
+  - name: Spin an EC2 with count {{ ec2_count }}
+    ec2:
+       key_name: "{{ key_name }}"
+       region: "{{ region }}"
+       instance_type: "{{ instance }}"
+       image: "{{ ami }}"
+       wait: "{{ ec2_wait }}"
+       wait_timeout: "{{ ec2_wtimeout }}"
+       count: "{{ ec2_count }}"
+       instance_tags:
+         Name: "{{ ec2_tag_name }}"
+         owner: "{{ ec2_tag_owner }}"
+       monitoring: "{{ monitoring }}"
+       vpc_subnet_id: "{{ vpc_sub_id }}"
+       assign_public_ip: "{{ public_ip }}"
+       group: "{{ sec_group }}"
+    register: ec2_out
+
+  - name: Add the newly created EC2 instance(s) to the local host group (located inside the directory)
+    local_action: lineinfile 
+                  dest={{ local_host_path }} 
+                  regexp={{ item.public_ip }}
+                  insertafter={{ insert }} 
+                  line={{ item.public_dns_name }}
+    with_items: "{{ ec2_out.instances }}"
+ 
+  - name: wait for {{ port3 }}
+    wait_for:
+      host: "{{ item.public_dns_name }}"
+      port: "{{ port3 }}"
+      delay: "{{ ssh_delay }}"
+      timeout: "{{ ssh_timeout }}"
+      state: "{{ state_start }}"
+    with_items: "{{ ec2_out.instances }}" 
+
+
